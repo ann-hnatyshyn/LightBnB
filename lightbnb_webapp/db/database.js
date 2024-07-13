@@ -65,7 +65,7 @@ const getUserWithId = function(id) {
  */
 const addUser = function (user) {
   return pool
-  .query(`INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *;`
+  .query(`INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *;`,
   [user.name, user.email, user.password])
   .then((result) => {
     if (result.rows.length > 0) {
@@ -88,11 +88,15 @@ const addUser = function (user) {
  * @param {string} guest_id The id of the user.
  * @return {Promise<[{}]>} A promise to the reservations.
  */
-const getAllReservations = function (options, limit = 10) {
+const getAllReservations = function (guest_id, limit = 10) {
   return pool
     .query(`SELECT reservations.id, properties.title, properties.cost_per_night, reservations.start_date
-    FROM reservations JOIN properties ON properties.id = property_id JOIN property_reviews ON property.rating = property_rating 
-     GROUP BY guest_id WHERE reservations.guest_id = $1 LIMIT 10`)
+            FROM reservations 
+            JOIN properties ON properties.id = property_id 
+            JOIN property_reviews ON property.rating = property_rating
+            WHERE reservations.guest_id = $1
+            GROUP BY guest_id WHERE reservations.guest_id = $1 
+            LIMIT $2`)
     .then((result) => {
       if (result.rows.length > 0) {
         console.log(result.rows[0]);
@@ -131,17 +135,17 @@ const getAllProperties = (options) => {
 
   if (options.owner_id) {
     queryParams.push(`%${options.owner_id}%`);
-    queryString +=`WHERE owner_id LIKE $${queryParams.length}`
+    queryString +=`AND owner_id LIKE $${queryParams.length}`
   };
 
   if (options.minimum_price_per_night && options.maximum_price_per_night) {
     queryParams.push(`%${options.minimum_price_per_night <= options.maximum_price_per_night}%`);
-    queryString +=`WHERE minimum_price_per_night <= maximum_price_per_night LIKE $${queryParams.length}`
+    queryString +=`AND minimum_price_per_night <= maximum_price_per_night LIKE $${queryParams.length}`
   };
 
   if (options.minimum_rating) {
     queryParams.push(`%${options.minimum_rating}%`);
-    queryString +=`WHERE minimum_rating LIKE $${queryParams.length}`
+    queryString +=`AND minimum_rating LIKE $${queryParams.length}`
     };
 
   queryParams.push(`$${limit}`);
@@ -163,20 +167,20 @@ const getAllProperties = (options) => {
  */
 const addProperty = function (property) {
   let queryString = `INSERT INTO properties (
-    owner_id: int,
-    title: string,
-    description: string,
-    thumbnail_photo_url: string,
-    cover_photo_url: string,
-    cost_per_night: string,
-    street: string,
-    city: string,
-    province: string,
-    post_code: string,
-    country: string,
-    parking_spaces: int,
-    number_of_bathrooms: int,
-    number_of_bedrooms: int
+    owner_id,
+    title,
+    description,
+    thumbnail_photo_url,
+    cover_photo_url,
+    cost_per_night,
+    street,
+    city,
+    province,
+    post_code,
+    country,
+    parking_spaces,
+    number_of_bathrooms,
+    number_of_bedrooms
   )
   VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
