@@ -95,7 +95,7 @@ const getAllReservations = function (guest_id, limit = 10) {
             JOIN properties ON properties.id = property_id 
             JOIN property_reviews ON property.rating = property_rating
             WHERE reservations.guest_id = $1
-            GROUP BY guest_id WHERE reservations.guest_id = $1 
+            GROUP BY guest_id 
             LIMIT $2`)
     .then((result) => {
       if (result.rows.length > 0) {
