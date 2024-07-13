@@ -144,7 +144,7 @@ const getAllProperties = (options) => {
     queryString +=`WHERE minimum_rating LIKE $${queryParams.length}`
     };
 
-  queryParams.push(limit);
+  queryParams.push(`$${limit}`);
   queryString += `
   GROUP BY properties.id
   ORDER BY cost_per_night
